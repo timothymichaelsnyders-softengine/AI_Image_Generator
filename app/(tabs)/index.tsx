@@ -18,9 +18,9 @@ import { Dropdown } from "react-native-element-dropdown";
 // Expo stuff and moment.js
 import * as FileSystem from "expo-file-system/legacy";
 import * as MediaLibrary from "expo-media-library";
-import { Stack } from "expo-router";
 import * as Sharing from "expo-sharing";
 import moment from "moment";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const modelData = [
   // { label: "Flux.1-dev", value: "black-forest-labs/FLUX.1-dev" },
@@ -119,6 +119,12 @@ export default function Index() {
   };
 
   const generateImage = async () => {
+    // handle empty textarea:
+    if (!prompt) {
+      alert("Type something or hit the random create button.");
+      return;
+    }
+
     console.log(prompt + "\n----\n" + model + "\n----\n" + aspectRatio);
     setIsLoading(true);
     const MODEL_URL = `https://router.huggingface.co/hf-inference/models/${model}`;
@@ -164,7 +170,8 @@ export default function Index() {
   };
 
   const handleDownload = async () => {
-    const base64Code = imageURL.split("data:image/jpeg;base64,")[1];
+    // const base64Code = imageURL.split("data:image/jpeg;base64,")[1];
+    const base64Code = imageURL.split("base64,")[1];
     const date = moment().format("YYYYMMDDhhmmss"); //use this as file name
 
     try {
@@ -176,27 +183,16 @@ export default function Index() {
       // save the file
       await MediaLibrary.saveToLibraryAsync(filename);
       alert("Downloaded Successfully");
-
-      /*
-      if (Platform.OS !== "web") {
-        const filename = FileSystem.documentDirectory + `${date}.jpeg`; // try the newer API `Paths.document`. Import `Paths` from 'expo-file-system'
-        await FileSystem.writeAsStringAsync(filename, base64Code, {
-          encoding: FileSystem.EncodingType.Base64,
-        });
-        await MediaLibrary.saveToLibraryAsync(filename);
-        alert("Downloaded Successfully");
-      } else {
-        // alert("Use web logic to download this image");
-        alert("Cannot download from the Web. Download the Mobile App.");
-      }
-      */
     } catch (error) {
       console.log(error);
     }
   };
 
+  // This might not work because look at the date/name.
+  // You are recreating the name so when you look for it in the galary you won't find it...
+  // The dates are different hence the saved file is named different to the search string name.
   const handleSharing = async () => {
-    const base64Code = imageURL.split("data:image/jpeg;base64,")[1];
+    const base64Code = imageURL.split("base64,")[1];
     const date = moment().format("YYYYMMDDhhmmss"); //use this as file name
 
     try {
@@ -215,124 +211,135 @@ export default function Index() {
   return (
     <>
       {/* Stack.Screen for the Header */}
-      <Stack.Screen
+      {/* <Stack.Screen
         options={{
           title: "AI Image Generator",
           headerStyle: { backgroundColor: Colors.background },
           headerTitleStyle: { color: Colors.text },
         }}
-      />
-      <View
-        style={{
-          backgroundColor: Colors.background,
-          padding: 12,
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-evenly",
-          borderBottomWidth: 0,
-          paddingLeft: 50,
-          paddingRight: 50,
-        }}
-      >
-        <Image source={require("@/ai.png")} style={{ width: 50, height: 50 }} />
-        <Text style={{ color: Colors.text, fontSize: 20, fontWeight: "bold" }}>
-          Image Generator
-        </Text>
-      </View>
-      <View style={styles.container}>
-        <ScrollView>
-          {/* Wrap the textInput in a view to allow the dice icon in the text area.. */}
-          <View style={{ height: 150 }}>
-            {/* create a text area section for input */}
-            <TextInput
-              placeholder="Describe your imagination in detail..."
-              placeholderTextColor={Colors.placeholder}
-              style={styles.inputField}
-              numberOfLines={3}
-              multiline={true}
-              value={prompt}
-              onChangeText={(text) => setPrompt(text)}
-            />
-            {/* Add the dice button using TouchableOpacity */}
-            <TouchableOpacity style={styles.ideaBtn} onPress={generatePrompt}>
-              {/* import icon from font-awesome */}
-              <FontAwesome5 name="dice" size={20} color={Colors.black} />
-            </TouchableOpacity>
-          </View>
-
-          {/* AI Model Dropdown */}
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            data={modelData}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select AI Model"
-            value={model}
-            onChange={(item) => {
-              setModel(item.value);
-            }}
+      /> */}
+      <SafeAreaView style={{ flex: 1 }}>
+        <View
+          style={{
+            backgroundColor: Colors.background,
+            // padding: 10,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-evenly",
+            // gap: 100,
+            borderBottomWidth: 0,
+            paddingLeft: 80,
+            paddingRight: 80,
+            paddingTop: 20,
+          }}
+        >
+          <Image
+            source={require("@/ai.png")}
+            style={{ width: 50, height: 50 }}
           />
-
-          {/* Aspect Ratio Dropdown */}
-          <Dropdown
-            style={styles.dropdown}
-            placeholderStyle={styles.placeholderStyle}
-            selectedTextStyle={styles.selectedTextStyle}
-            data={aspectRatioData}
-            maxHeight={300}
-            labelField="label"
-            valueField="value"
-            placeholder="Select Aspect Ratio"
-            value={aspectRatio}
-            onChange={(item) => {
-              setAspectRatio(item.value);
-            }}
-          />
-
-          {/* Submit button */}
-          <TouchableOpacity style={styles.button} onPress={generateImage}>
-            <Text style={styles.btnText}>Generate</Text>
-          </TouchableOpacity>
-
-          {isLoading && (
-            <View style={[styles.imageContainer, { justifyContent: "center" }]}>
-              {/* Display the loader */}
-              <ActivityIndicator size={"large"} />
+          <Text
+            style={{ color: Colors.text, fontSize: 20, fontWeight: "bold" }}
+          >
+            Image Generator
+          </Text>
+        </View>
+        <View style={styles.container}>
+          <ScrollView>
+            {/* Wrap the textInput in a view to allow the dice icon in the text area.. */}
+            <View style={{ height: 150 }}>
+              {/* create a text area section for input */}
+              <TextInput
+                placeholder="Describe your imagination in detail..."
+                placeholderTextColor={Colors.placeholder}
+                style={styles.inputField}
+                numberOfLines={3}
+                multiline={true}
+                value={prompt}
+                onChangeText={(text) => setPrompt(text)}
+              />
+              {/* Add the dice button using TouchableOpacity */}
+              <TouchableOpacity style={styles.ideaBtn} onPress={generatePrompt}>
+                {/* import icon from font-awesome */}
+                <FontAwesome5 name="dice" size={20} color={Colors.black} />
+              </TouchableOpacity>
             </View>
-          )}
 
-          {imageURL && (
-            <>
-              <View style={styles.imageContainer}>
-                {/* <Image source={require("@/sample-image.jpg")} style={styles.image} /> */}
-                <Image source={{ uri: imageURL }} style={styles.image} />
+            {/* AI Model Dropdown */}
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              data={modelData}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select AI Model"
+              value={model === "" ? modelData[0].value : model}
+              onChange={(item) => {
+                setModel(item.value);
+              }}
+            />
+
+            {/* Aspect Ratio Dropdown */}
+            <Dropdown
+              style={styles.dropdown}
+              placeholderStyle={styles.placeholderStyle}
+              selectedTextStyle={styles.selectedTextStyle}
+              data={aspectRatioData}
+              maxHeight={300}
+              labelField="label"
+              valueField="value"
+              placeholder="Select Aspect Ratio"
+              value={aspectRatio}
+              onChange={(item) => {
+                setAspectRatio(item.value);
+              }}
+            />
+
+            {/* Submit button */}
+            <TouchableOpacity style={styles.button} onPress={generateImage}>
+              <Text style={styles.btnText}>Generate</Text>
+            </TouchableOpacity>
+
+            {isLoading && (
+              <View
+                style={[styles.imageContainer, { justifyContent: "center" }]}
+              >
+                {/* Display the loader */}
+                <ActivityIndicator size={"large"} />
               </View>
+            )}
 
-              <View style={styles.buttonContainer}>
-                {/* Download button */}
-                <TouchableOpacity
-                  style={styles.downloadBtn}
-                  onPress={handleDownload}
-                >
-                  <FontAwesome5 name="download" size={20} />
-                </TouchableOpacity>
+            {!isLoading && imageURL && (
+              <>
+                <View style={styles.imageContainer}>
+                  {/* <Image source={require("@/sample-image.jpg")} style={styles.image} /> */}
+                  <Image source={{ uri: imageURL }} style={styles.image} />
+                </View>
 
-                {/* Share button */}
-                <TouchableOpacity
-                  style={styles.downloadBtn}
-                  onPress={handleSharing}
-                >
-                  <FontAwesome5 name="share" size={20} />
-                </TouchableOpacity>
-              </View>
-            </>
-          )}
-        </ScrollView>
-      </View>
+                <View style={styles.buttonContainer}>
+                  {/* Download button */}
+                  <TouchableOpacity
+                    style={styles.downloadBtn}
+                    onPress={handleDownload}
+                  >
+                    <FontAwesome5 name="download" size={20} />
+                  </TouchableOpacity>
+
+                  {/* Share button */}
+                  <TouchableOpacity
+                    style={styles.downloadBtn}
+                    onPress={handleSharing}
+                  >
+                    <FontAwesome5 name="share" size={20} />
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </SafeAreaView>
     </>
   );
 }
@@ -341,7 +348,7 @@ const windowWidth = Dimensions.get("window").width;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
+    paddingTop: 25,
     flex: 1,
     padding: 20,
     backgroundColor: Colors.background,
@@ -401,7 +408,8 @@ const styles = StyleSheet.create({
   },
   imageContainer: {
     height: 300,
-    width: windowWidth - 40,
+    // width: windowWidth - 40,
+    width: "auto",
     marginTop: 20,
     borderRadius: 10,
     borderColor: Colors.accent,
