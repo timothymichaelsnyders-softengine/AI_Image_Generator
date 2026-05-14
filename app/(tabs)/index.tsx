@@ -125,13 +125,20 @@ export default function Index() {
       return;
     }
 
+    const selectedModel = model || modelData[0].value;
+
+    if (!model) {
+      setModel(selectedModel);
+    }
+
     console.log(prompt + "\n----\n" + model + "\n----\n" + aspectRatio);
     setIsLoading(true);
-    const MODEL_URL = `https://router.huggingface.co/hf-inference/models/${model}`;
+    const MODEL_URL = `https://router.huggingface.co/hf-inference/models/${selectedModel}`;
     const { width, height } = getImageDimensions(aspectRatio);
     console.log("width: ", width);
     console.log("Height: ", height);
-    const API_KEY = process.env.EXPO_PUBLIC_API_KEY;
+    // const API_KEY = process.env.EXPO_PUBLIC_API_KEY;
+    const API_KEY = "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";
     console.log("API KEY: ", API_KEY);
 
     try {
